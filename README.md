@@ -1,12 +1,28 @@
-# Fitness Studio Booking API
+# Booking API
 
 A simple Flask-based API for booking fitness classes (Yoga, Zumba, HIIT) at a fictional studio.
+
+---
+
+## Table of Contents
+1. [Features](#features)
+2. [Setup Instructions](#setup-instructions)
+3. [Project Structure](#project-structure)
+4. [API Endpoints](#api-endpoints)
+5. [API Endpoint Details](#api-endpoint-details)
+6. [Sample Requests](#sample-requests)
+7. [Running Tests](#running-tests)
+
+---
 
 ## Features
 - View available classes
 - Book a class
+- View all bookings
 - View bookings by email
 - Timezone support (IST and conversion)
+
+---
 
 ## Setup Instructions
 
@@ -19,42 +35,150 @@ A simple Flask-based API for booking fitness classes (Yoga, Zumba, HIIT) at a fi
    python app.py
    ```
 
+---
+
+## Project Structure
+
+```
+BookingAPI/
+│
+├── app.py                # Main Flask app, creates app and registers blueprints
+├── db.py                 # Database connection and schema/seed logic
+├── models.py             # Data models and validation
+├── utils.py              # Utility functions (e.g., timezone conversion)
+├── requirements.txt      # Dependencies
+├── README.md             # Documentation
+├── routes/               # Modular route blueprints
+│   ├── classes.py        # Endpoints for class listings
+│   ├── bookings.py       # Endpoints for bookings
+│   └── admin.py          # Endpoints for admin actions (timezone)
+└── tests/
+    └── test_api.py       # All tests
+```
+
+- **Modular Routing:** All API endpoints are organized into separate modules using Flask Blueprints, located in the `routes/` package for clarity and scalability.
+
+---
+
 ## API Endpoints
 
 - `GET /classes` — List all upcoming classes
 - `POST /book` — Book a class
+- `GET /bookings` — List all bookings in the system (admin or reporting use)
 - `GET /bookings?email=...` — List bookings by email
+- `POST /change_timezone` - Changes the time zone of all classes
+- `GET /classes?timezone=...` — List classes with time zone
 
-## Advanced: Change Base Timezone for All Classes (Admin)
+---
 
-- `POST /admin/change_timezone` — Change the base timezone for all stored class datetimes.
-  - Body: `{ "new_timezone": "<timezone string, e.g. UTC or America/New_York>" }`
+## API Endpoint Details
 
-### Example: Change all class times to UTC
-```bash
-curl -X POST http://127.0.0.1:5000/admin/change_timezone \
-  -H "Content-Type: application/json" \
-  -d '{"new_timezone": "UTC"}'
+### GET `/classes`
+**Description:** List all upcoming classes.
+
+**Query Parameters:**
+- `timezone` (optional, string): e.g., `"UTC"`, `"Asia/Kolkata"`. Defaults to IST.
+
+**Response Example:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Yoga",
+    "datetime": "2024-06-01 10:00:00",
+    "instructor": "Alice",
+    "available_slots": 5
+  }
+]
 ```
 
-## Running Tests
+---
 
-This project includes a suite of unit tests using `pytest` to ensure the API works as expected and handles edge cases.
+### POST `/book`
+**Description:** Book a class.
 
-### To run the tests:
-
-```bash
-pytest
+**Request Body:**
+```json
+{
+  "class_id": 1,
+  "client_name": "Veerendra",
+  "client_email": "veeru@test.com"
+}
 ```
 
-### Test Coverage Highlights
-- Listing available classes
-- Booking a class (success, overbooking, missing fields)
-- Viewing bookings by email (including when there are no bookings)
-- Admin changing the base timezone for all classes
-- Handling invalid timezone inputs (for both class listing and admin timezone change)
+**Success Response:**
+- Status: `201 Created`
+```json
+{
+  "message": "Booking successful"
+}
+```
 
-The tests cover both standard usage and important edge cases to ensure robust API behavior.
+**Error Responses:**
+- Missing JSON body:
+  - Status: `400 Bad Request`
+  - `{ "error": "Missing JSON body" }`
+- Validation errors (missing fields, invalid email, etc.):
+  - Status: `400 Bad Request`
+  - `{ "error": ["class_id is required", ...] }`
+- Class not found:
+  - Status: `404 Not Found`
+  - `{ "error": "Class not found" }`
+- No slots available:
+  - Status: `409 Conflict`
+  - `{ "error": "No slots available" }`
+
+---
+
+### GET `/bookings`
+**Description:** List all bookings, or filter by email.
+
+**Query Parameters:**
+- `email` (optional, string): Filter bookings by client email.
+
+**Response Example:**
+```json
+[
+  {
+    "booking_id": 1,
+    "class_id": 1,
+    "class_name": "Yoga",
+    "client_name": "Veerendra",
+    "client_email": "veeru@test.com",
+    "booked_at": "2024-06-01 10:00 AM"
+  }
+]
+```
+
+---
+
+### POST `/change_timezone`
+**Description:** Change the base timezone for all classes.
+
+**Request Body:**
+```json
+{
+  "new_timezone": "UTC"
+}
+```
+
+**Success Response:**
+- Status: `200 OK`
+```json
+{
+  "message": "All class times updated to new base timezone: UTC"
+}
+```
+
+**Error Responses:**
+- Missing field:
+  - Status: `400 Bad Request`
+  - `{ "error": "Missing new_timezone in request body" }`
+- Invalid timezone:
+  - Status: `400 Bad Request`
+  - `{ "error": "Invalid timezone" }`
+
+---
 
 ## Sample Requests
 
@@ -79,7 +203,43 @@ curl -X POST http://127.0.0.1:5000/book \
   }'
 ```
 
-### 4. Get bookings by email
+### 4. Get all bookings
+```bash
+curl -X GET http://127.0.0.1:5000/bookings
+```
+
+### 5. Get bookings by email
 ```bash
 curl -X GET "http://127.0.0.1:5000/bookings?email=veeru@test.com"
-``` 
+```
+
+### 6. Change Base Timezone
+```bash
+curl -X POST "http://127.0.0.1:5000/change_timezone" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "new_timezone": "UTC"
+  }'
+```
+
+---
+
+## Running Tests
+
+This project includes a suite of unit tests using `pytest` to ensure the API works as expected and handles edge cases.
+
+### To run the tests:
+
+```bash
+pytest
+```
+
+### Test Coverage Highlights
+- Listing available classes
+- Booking a class (success, overbooking, missing fields)
+- Viewing bookings by email (including when there are no bookings)
+- Admin changing the base timezone for all classes
+- Handling invalid timezone inputs (for both class listing and admin timezone change)
+
+The tests cover both standard usage and important edge cases to ensure robust API behavior.
+
