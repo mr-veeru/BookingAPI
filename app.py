@@ -19,6 +19,9 @@ def create_app(test_conn=None) -> Flask:
     app = Flask(__name__)
     # Load config (can be overridden by environment variable if desired)
     app.config.from_object(os.environ.get('BOOKINGAPI_CONFIG', 'config.DevelopmentConfig'))
+    # Ensure DEFAULT_TIMEZONE is set in app config for use in routes
+    if not app.config.get('DEFAULT_TIMEZONE'):
+        app.config['DEFAULT_TIMEZONE'] = 'Asia/Kolkata'
     conn = test_conn or get_db_connection()
     app.config['DB_CONN'] = conn
 
@@ -51,4 +54,4 @@ if __name__ == '__main__':
     conn = get_db_connection()
     init_db(conn)
     app = create_app(test_conn=conn)
-    app.run(debug=True)
+    app.run(debug=app.config['DEBUG'])

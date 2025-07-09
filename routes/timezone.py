@@ -25,7 +25,7 @@ def change_base_timezone() -> Any:
     cur = conn.cursor()
     cur.execute('SELECT id, datetime FROM classes')
     classes = cur.fetchall()
-    ist = pytz.timezone('Asia/Kolkata')
+    ist = pytz.timezone(current_app.config['DEFAULT_TIMEZONE'])
     target = pytz.timezone(new_tz)
     for c in classes:
         dt_ist = ist.localize(datetime.strptime(c['datetime'], '%Y-%m-%d %H:%M:%S'))

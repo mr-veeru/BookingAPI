@@ -33,7 +33,7 @@ def book_class() -> Any:
         return jsonify({'error': 'Class not found'}), 404
     if cls['available_slots'] <= 0:
         return jsonify({'error': 'No slots available'}), 409
-    now_ist = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')
+    now_ist = datetime.now(pytz.timezone(current_app.config['DEFAULT_TIMEZONE'])).strftime('%Y-%m-%d %H:%M:%S')
     cur.execute('''
         INSERT INTO bookings (class_id, client_name, client_email, booked_at)
         VALUES (?, ?, ?, ?)
@@ -59,7 +59,7 @@ def get_bookings() -> Any:
     result = []
     for b in bookings:
         try:
-            ist = pytz.timezone('Asia/Kolkata')
+            ist = pytz.timezone(current_app.config['DEFAULT_TIMEZONE'])
             dt = ist.localize(datetime.strptime(b['booked_at'], '%Y-%m-%d %H:%M:%S'))
             booked_at_12hr = dt.strftime('%Y-%m-%d %I:%M %p')
         except Exception:
