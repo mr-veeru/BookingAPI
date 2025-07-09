@@ -1,10 +1,10 @@
 """
 Routes for admin actions such as changing the base timezone.
 """
-from flask import Blueprint, request, jsonify, current_app
+from datetime import datetime
 from typing import Any
 import pytz
-from datetime import datetime
+from flask import Blueprint, current_app, jsonify, request
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -33,4 +33,4 @@ def change_base_timezone() -> Any:
         new_dt_str = dt_new.strftime('%Y-%m-%d %H:%M:%S')
         cur.execute('UPDATE classes SET datetime = ? WHERE id = ?', (new_dt_str, c['id']))
     conn.commit()
-    return jsonify({'message': f'All class times updated to new base timezone: {new_tz}'}), 200 
+    return jsonify({'message': f'All class times updated to new base timezone: {new_tz}'}), 200

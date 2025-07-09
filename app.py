@@ -7,9 +7,8 @@ from db import get_db_connection, init_db
 from routes.classes import classes_bp
 from routes.bookings import bookings_bp
 from routes.admin import admin_bp
-import logging
 from config import DevelopmentConfig  # Use DevelopmentConfig by default
-
+import logging
 import os
 
 def create_app(test_conn=None) -> Flask:
@@ -32,6 +31,11 @@ def create_app(test_conn=None) -> Flask:
     app.register_blueprint(bookings_bp)
     app.register_blueprint(admin_bp)
 
+    # Root route
+    @app.route('/')
+    def root():
+        return 'Welcome to Booking API'
+
     # Error handlers
     @app.errorhandler(404)
     def not_found(e):
@@ -43,8 +47,9 @@ def create_app(test_conn=None) -> Flask:
 
     return app
 
+
 if __name__ == '__main__':
     conn = get_db_connection()
     init_db(conn)
     app = create_app(test_conn=conn)
-    app.run(debug=True) 
+    app.run(debug=True)
