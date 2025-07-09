@@ -10,7 +10,7 @@ class Class:
     """Represents a fitness class."""
     id: int
     name: str
-    datetime: str  # ISO format string
+    datetime: str 
     instructor: str
     available_slots: int
 
@@ -21,7 +21,7 @@ class Booking:
     class_id: int
     client_name: str
     client_email: str
-    booked_at: str  # ISO format string
+    booked_at: str 
 
 @dataclass
 class BookingRequest:

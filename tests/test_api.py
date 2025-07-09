@@ -1,6 +1,6 @@
 """
 Unit tests for the Booking API.
-Covers endpoints for classes, booking, bookings by email, overbooking, missing fields, and admin timezone change.
+Covers endpoints for classes, booking, overbooking, missing fields, and timezone change.
 """
 import pytest
 from app import create_app
@@ -39,27 +39,8 @@ def test_get_classes(client):
     assert 'name' in data[0]
     assert 'available_slots' in data[0]
 
-@pytest.mark.parametrize(
-    "timezone,expected_status",
-    [
-        ("Asia/Kolkata", 200),
-        ("UTC", 200),
-        ("Europe/London", 200),
-        ("Invalid/Timezone", 200),  # Should fallback, not error
-    ]
-)
-def test_get_classes_various_timezones(client, timezone, expected_status):
-    """
-    GET /classes with various valid and invalid timezones.
-    """
-    resp = client.get(f'/classes?timezone={timezone}')
-    assert resp.status_code == expected_status
-    data = resp.get_json()
-    assert isinstance(data, list)
-    assert 'datetime' in data[0]
-
 # ----------------------
-# Booking Endpoints
+# Book Endpoints
 # ----------------------
 
 def test_book_class_success(client):
@@ -115,18 +96,6 @@ def test_book_class_validation(client, payload, expected_status, expected_error)
     data = resp.get_json()
     assert expected_error in str(data['error'])
 
-def test_book_class_missing_fields(client):
-    """
-    POST /book: Missing required fields returns 400 Bad Request.
-    """
-    resp = client.post('/book', json={
-        'class_id': 1,
-        'client_email': 'missing@test.com'
-    })
-    assert resp.status_code == 400
-    data = resp.get_json()
-    assert 'client_name is required' in str(data['error'])
-
 # ----------------------
 # Bookings Endpoints
 # ----------------------
@@ -159,42 +128,6 @@ def test_get_all_bookings(client):
     assert 'client_email' in booking
     assert 'booked_at' in booking
 
-def test_get_bookings_by_email(client):
-    """
-    GET /bookings?email=...: Returns only bookings for the specified email.
-    """
-    client.post('/book', json={
-        'class_id': 1,
-        'client_name': 'User1',
-        'client_email': 'user1@test.com'
-    })
-    client.post('/book', json={
-        'class_id': 2,
-        'client_name': 'User2',
-        'client_email': 'user2@test.com'
-    })
-    resp = client.get('/bookings?email=user1@test.com')
-    assert resp.status_code == 200
-    data = resp.get_json()
-    assert isinstance(data, list)
-    assert all(b['client_email'] == 'user1@test.com' for b in data)
-
-def test_get_bookings(client):
-    """
-    GET /bookings?email=...: Returns bookings for a specific email after booking.
-    """
-    client.post('/book', json={
-        'class_id': 2,
-        'client_name': 'Booker',
-        'client_email': 'booker@test.com'
-    })
-    resp = client.get('/bookings?email=booker@test.com')
-    assert resp.status_code == 200
-    data = resp.get_json()
-    assert isinstance(data, list)
-    assert len(data) >= 1
-    assert data[0]['client_email'] == 'booker@test.com'
-
 def test_get_bookings_empty(client):
     """
     GET /bookings: Returns empty list when there are no bookings.
@@ -203,13 +136,13 @@ def test_get_bookings_empty(client):
     assert resp.status_code == 200
     data = resp.get_json()
     assert isinstance(data, list)
-    assert len(data) == 0
+    assert len(data) == 0 
 
 # ----------------------
 # Timezone Endpoints
 # ----------------------
 
-def test_admin_change_timezone(client):
+def test_change_timezone(client):
     """
     POST /change_timezone: Successfully updates class datetimes and verifies timezone change.
     """
@@ -222,18 +155,13 @@ def test_admin_change_timezone(client):
     assert resp.status_code == 200
     assert 'All class times updated to new base timezone' in resp.get_json()['message']
 
-    resp = client.get('/classes?timezone=UTC')
+    resp = client.get('/classes')
     assert resp.status_code == 200
     data_utc = resp.get_json()
     dt_utc = data_utc[0]['datetime']
+    assert dt_utc != dt_ist
 
-    resp = client.get('/classes?timezone=Asia/Kolkata')
-    assert resp.status_code == 200
-    data_ist_after = resp.get_json()
-    dt_ist_after = data_ist_after[0]['datetime']
-    assert dt_utc != dt_ist_after
-
-def test_admin_change_timezone_invalid(client):
+def test_change_timezone_invalid(client):
     """
     POST /change_timezone: Invalid timezone string returns 400 error.
     """

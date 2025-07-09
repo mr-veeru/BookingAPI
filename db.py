@@ -5,7 +5,6 @@ Handles SQLite in-memory connection, schema creation, and seed data.
 import sqlite3
 from datetime import datetime, timedelta
 import pytz
-from typing import Any
 
 def get_db_connection() -> sqlite3.Connection:
     """

@@ -19,7 +19,6 @@ A simple Flask-based API for booking fitness classes (Yoga, Zumba, HIIT) at a fi
 - View available classes
 - Book a class
 - View all bookings
-- View bookings by email
 - Timezone support (IST and conversion)
 
 ---
@@ -45,18 +44,17 @@ BookingAPI/
 ├── app.py                # Main Flask app, creates app and registers blueprints
 ├── db.py                 # Database connection and schema/seed logic
 ├── models.py             # Data models and validation
-├── utils.py              # Utility functions (e.g., timezone conversion)
 ├── requirements.txt      # Dependencies
 ├── README.md             # Documentation
 ├── routes/               # Modular route blueprints
 │   ├── classes.py        # Endpoints for class listings
 │   ├── bookings.py       # Endpoints for bookings
-│   └── admin.py          # Endpoints for admin actions (timezone)
+│   └── timezone.py       # Endpoints for changing the timezone
 └── tests/
     └── test_api.py       # All tests
 ```
 
-- **Modular Routing:** All API endpoints are organized into separate modules using Flask Blueprints, located in the `routes/` package for clarity and scalability.
+- **Modular Routing:** All API endpoints are organized into separate modules using Flask, located in the `routes/` package for clarity and scalability.
 
 ---
 
@@ -64,20 +62,15 @@ BookingAPI/
 
 - `GET /classes` — List all upcoming classes
 - `POST /book` — Book a class
-- `GET /bookings` — List all bookings in the system (admin or reporting use)
-- `GET /bookings?email=...` — List bookings by email
+- `GET /bookings` — List all bookings in the system 
 - `POST /change_timezone` - Changes the time zone of all classes
-- `GET /classes?timezone=...` — List classes with time zone
 
 ---
 
 ## API Endpoint Details
 
 ### GET `/classes`
-**Description:** List all upcoming classes.
-
-**Query Parameters:**
-- `timezone` (optional, string): e.g., `"UTC"`, `"Asia/Kolkata"`. Defaults to IST.
+**Description:** List all upcoming classes. Times are always returned in the current base timezone (IST by default, or as set by /change_timezone).
 
 **Response Example:**
 ```json
@@ -187,12 +180,7 @@ BookingAPI/
 curl -X GET http://127.0.0.1:5000/classes
 ```
 
-### 2. List all classes in a different timezone (e.g., UTC)
-```bash
-curl -X GET "http://127.0.0.1:5000/classes?timezone=UTC"
-```
-
-### 3. Book a class
+### 2. Book a class
 ```bash
 curl -X POST http://127.0.0.1:5000/book \
   -H "Content-Type: application/json" \
@@ -203,17 +191,12 @@ curl -X POST http://127.0.0.1:5000/book \
   }'
 ```
 
-### 4. Get all bookings
+### 3. Get all bookings
 ```bash
 curl -X GET http://127.0.0.1:5000/bookings
 ```
 
-### 5. Get bookings by email
-```bash
-curl -X GET "http://127.0.0.1:5000/bookings?email=veeru@test.com"
-```
-
-### 6. Change Base Timezone
+### 4. Change Base Timezone
 ```bash
 curl -X POST "http://127.0.0.1:5000/change_timezone" \
   -H "Content-Type: application/json" \
@@ -231,15 +214,14 @@ This project includes a suite of unit tests using `pytest` to ensure the API wor
 ### To run the tests:
 
 ```bash
-pytest
+python -m pytest
 ```
 
 ### Test Coverage Highlights
-- Listing available classes
-- Booking a class (success, overbooking, missing fields)
-- Viewing bookings by email (including when there are no bookings)
-- Admin changing the base timezone for all classes
-- Handling invalid timezone inputs (for both class listing and admin timezone change)
+- **Classes Endpoints:** Basic listing, timezone change reflected 
+- **Booking Endpoints:** Success, overbooking, + parameterized validation 
+- **Bookings Endpoints:** All bookings, empty state 
+- **Timezone Endpoints:** Timezone change success and validation
 
 The tests cover both standard usage and important edge cases to ensure robust API behavior.
 

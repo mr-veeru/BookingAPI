@@ -6,8 +6,7 @@ from flask import Flask
 from db import get_db_connection, init_db
 from routes.classes import classes_bp
 from routes.bookings import bookings_bp
-from routes.admin import admin_bp
-from config import DevelopmentConfig  # Use DevelopmentConfig by default
+from routes.timezone import timezone_bp
 import logging
 import os
 
@@ -29,7 +28,7 @@ def create_app(test_conn=None) -> Flask:
     # Register blueprints
     app.register_blueprint(classes_bp)
     app.register_blueprint(bookings_bp)
-    app.register_blueprint(admin_bp)
+    app.register_blueprint(timezone_bp)
 
     # Root route
     @app.route('/')

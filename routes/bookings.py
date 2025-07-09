@@ -42,29 +42,19 @@ def book_class() -> Any:
     conn.commit()
     return jsonify({'message': 'Booking successful'}), 201
 
-@bookings_bp.route('/bookings', methods=['GET'])
+@bookings_bp.route('/bookings', methods=['GET']) 
 def get_bookings() -> Any:
     """
-    List all bookings, or filter by client email if provided.
+    List all bookings.
     """
     conn = current_app.config['DB_CONN']
-    email = request.args.get('email')
     cur = conn.cursor()
-    if email:
-        cur.execute('''
-            SELECT b.id, b.class_id, c.name as class_name, b.client_name, b.client_email, b.booked_at
-            FROM bookings b
-            JOIN classes c ON b.class_id = c.id
-            WHERE b.client_email = ?
-            ORDER BY b.booked_at DESC
-        ''', (email,))
-    else:
-        cur.execute('''
-            SELECT b.id, b.class_id, c.name as class_name, b.client_name, b.client_email, b.booked_at
-            FROM bookings b
-            JOIN classes c ON b.class_id = c.id
-            ORDER BY b.booked_at DESC
-        ''')
+    cur.execute('''
+        SELECT b.id, b.class_id, c.name as class_name, b.client_name, b.client_email, b.booked_at
+        FROM bookings b
+        JOIN classes c ON b.class_id = c.id
+        ORDER BY b.booked_at DESC
+    ''')
     bookings = cur.fetchall()
     result = []
     for b in bookings:

@@ -1,14 +1,14 @@
 """
-Routes for admin actions such as changing the base timezone.
+Routes for changing the base timezone.
 """
 from datetime import datetime
 from typing import Any
 import pytz
 from flask import Blueprint, current_app, jsonify, request
 
-admin_bp = Blueprint('admin', __name__)
+timezone_bp = Blueprint('timezone', __name__)
 
-@admin_bp.route('/change_timezone', methods=['POST'])
+@timezone_bp.route('/change_timezone', methods=['POST'])
 def change_base_timezone() -> Any:
     """
     Change the base timezone for all classes.
