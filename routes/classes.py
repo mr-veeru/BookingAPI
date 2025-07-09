@@ -3,6 +3,7 @@ Routes for class listings and related endpoints.
 """
 from flask import Blueprint, jsonify, current_app
 from typing import Any
+from models import Class
 
 classes_bp = Blueprint('classes', __name__)
 
@@ -17,11 +18,12 @@ def get_classes() -> Any:
     classes = cur.fetchall()
     result = []
     for c in classes:
-        result.append({
-            'id': c['id'],
-            'name': c['name'],
-            'datetime': c['datetime'],
-            'instructor': c['instructor'],
-            'available_slots': c['available_slots']
-        })
+        class_obj = Class(
+            id=c['id'],
+            name=c['name'],
+            datetime=c['datetime'],
+            instructor=c['instructor'],
+            available_slots=c['available_slots']
+        )
+        result.append(class_obj.__dict__)
     return jsonify(result), 200 

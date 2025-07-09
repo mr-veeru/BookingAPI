@@ -2,7 +2,7 @@
 Routes for booking creation and viewing bookings.
 """
 from flask import Blueprint, request, jsonify, current_app
-from models import BookingRequest
+from models import BookingRequest, Booking
 from typing import Any
 from datetime import datetime
 import pytz
@@ -64,12 +64,15 @@ def get_bookings() -> Any:
             booked_at_12hr = dt.strftime('%Y-%m-%d %I:%M %p')
         except Exception:
             booked_at_12hr = b['booked_at']
-        result.append({
-            'booking_id': b['id'],
-            'class_id': b['class_id'],
-            'class_name': b['class_name'],
-            'client_name': b['client_name'],
-            'client_email': b['client_email'],
-            'booked_at': booked_at_12hr
-        })
+        booking_obj = Booking(
+            id=b['id'],
+            class_id=b['class_id'],
+            client_name=b['client_name'],
+            client_email=b['client_email'],
+            booked_at=booked_at_12hr
+        )
+        booking_dict = booking_obj.__dict__
+        booking_dict['class_name'] = b['class_name']
+        booking_dict['booking_id'] = booking_dict.pop('id')
+        result.append(booking_dict)
     return jsonify(result), 200 
