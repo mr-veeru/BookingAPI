@@ -1,13 +1,13 @@
 """
-Data models for the Fitness Studio Booking API.
+Data models for the Booking API.
 Defines class, booking, and booking request schemas and validation.
 """
 from dataclasses import dataclass
-from typing import Optional
-from datetime import datetime
+from typing import List
 
 @dataclass
 class Class:
+    """Represents a fitness class."""
     id: int
     name: str
     datetime: str  # ISO format string
@@ -16,6 +16,7 @@ class Class:
 
 @dataclass
 class Booking:
+    """Represents a booking for a class."""
     id: int
     class_id: int
     client_name: str
@@ -24,12 +25,14 @@ class Booking:
 
 @dataclass
 class BookingRequest:
+    """Request schema for booking a class, with validation."""
     class_id: int
     client_name: str
     client_email: str
 
-    def validate(self):
-        errors = []
+    def validate(self) -> List[str]:
+        """Validate the booking request fields. Returns a list of error messages."""
+        errors: List[str] = []
         if not self.class_id:
             errors.append('class_id is required')
         if not self.client_name or not self.client_name.strip():
